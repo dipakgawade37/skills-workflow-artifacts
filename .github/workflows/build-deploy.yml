@@ -1,9 +1,10 @@
 name: Build and Deploy
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # manual trigger
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -23,21 +24,19 @@ jobs:
         with:
           name: octomatch
           path: dist
+          archive: false   # required by your lint rule
 
-
-
- dev:
-   name: Deploy Dev
-   needs: build
-   runs-on: ubuntu-latest
-   steps:
-     - uses: actions/download-artifact@v8
-       with:
-         name: octomatch
-         path: website
-     - name: Deploy to Dev
-       run: |
-         echo "Downloaded artifact contents:"
-         tree website
-         echo "Demo deploy step: replace with your real deploy command."
- 
+  dev:
+    name: Deploy Dev
+    needs: build   # depends on build job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: octomatch
+          path: website
+      - name: Deploy to Dev
+        run: |
+          echo "Downloaded artifact contents:"
+          tree website
+          echo "Demo deploy step: replace with your real deploy command."
