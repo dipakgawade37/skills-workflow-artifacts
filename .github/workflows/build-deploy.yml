@@ -1,7 +1,7 @@
 name: Build and Deploy
 
 on:
-  workflow_dispatch:   # manual trigger
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -13,30 +13,33 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           cache: npm
+
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-artifact@v7
+
+      - uses: actions/upload-artifact@v4
         with:
           name: octomatch
           path: dist
-          archive: false   # required by your lint rule
 
   dev:
     name: Deploy Dev
-    needs: build   # depends on build job
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@v4
         with:
           name: octomatch
           path: website
+
       - name: Deploy to Dev
         run: |
           echo "Downloaded artifact contents:"
-          tree website
+          ls -R website
           echo "Demo deploy step: replace with your real deploy command."
