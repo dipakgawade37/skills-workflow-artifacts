@@ -1,45 +1,31 @@
-name: Build and Deploy
+name: Deploy Prod
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build and Deploy"]   # 👈 listens for completion of your build workflow
+    types:
+      - completed
 
 permissions:
   contents: read
+  actions: read   # 👈 required to download artifacts from another workflow run
 
 jobs:
-  build:
+  prod:
+    name: Deploy Prod
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'   # 👈 only run if build succeeded
+    environment: prod   # 👈 adds approval gate if you configure "prod" environment in repo settings
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      - run: npm run build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: octomatch
-          path: dist
-
-  dev:
-    name: Deploy Dev
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: octomatch
           path: website
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to Dev
+      - name: Deploy to Production
         run: |
           echo "Downloaded artifact contents:"
-          ls -R website
+          tree website
           echo "Demo deploy step: replace with your real deploy command."
